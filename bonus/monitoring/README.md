@@ -16,6 +16,7 @@ The script checks:
 - `infra-demo.service`
 - `nginx.service`
 - `infra-maintenance.timer`
+- the direct Nginx text check at `/nginx-check`
 - the Nginx landing page at `/`
 - the public health endpoint at `/health`
 - the backend health endpoint at `127.0.0.1:8080/health`

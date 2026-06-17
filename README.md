@@ -418,6 +418,7 @@ git log --oneline -8
 sudo bash scripts/provision.sh
 sudo bash scripts/validate.sh
 curl -i http://localhost/
+curl -i http://localhost/nginx-check
 curl -i http://localhost/health
 ```
 

@@ -37,6 +37,7 @@ Evidence:
 ```bash
 systemctl status infra-demo --no-pager
 systemctl status nginx --no-pager
+curl -i http://127.0.0.1/nginx-check
 curl -i http://127.0.0.1/health
 curl -i http://127.0.0.1:8080/health
 journalctl -u infra-demo -n 30 --no-pager

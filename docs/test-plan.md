@@ -7,7 +7,7 @@ screenshots/evidence.
 | Check area | What is verified | Manual command | Automated by |
 |---|---|---|---|
 | Service | `infra-demo`, `nginx`, and maintenance timer are enabled/active | `systemctl status infra-demo nginx`; `systemctl list-timers infra-maintenance.timer` | `validate.sh` |
-| Health | Backend and nginx frontend return JSON health | `curl -i http://127.0.0.1:8080/health`; `curl -i http://127.0.0.1/health` | `validate.sh` |
+| Health | Backend health, Nginx proxy health, and direct Nginx text check respond | `curl -i http://127.0.0.1:8080/health`; `curl -i http://127.0.0.1/health`; `curl -i http://127.0.0.1/nginx-check` | `validate.sh` |
 | Firewall | UFW is active and only SSH/HTTP are exposed | `ufw status verbose`; `ss -ltnp` | `validate.sh` |
 | Users | `linus` ops user and `infra-demo` service user exist | `id linus`; `id infra-demo`; `groups linus` | `validate.sh` |
 | Permissions | Env file has safe ownership/mode | `stat -c '%U:%G %a %n' /etc/infra-demo/infra-demo.env` | `validate.sh` |
@@ -20,11 +20,12 @@ screenshots/evidence.
 1. Show local VM OS/version.
 2. Show repo tree.
 3. Run `sudo bash scripts/provision.sh`.
-4. Run `curl -i http://127.0.0.1/health`.
-5. Run `sudo bash scripts/validate.sh`.
-6. Run `sudo bash scripts/provision.sh` again for idempotency evidence.
-7. Reboot.
-8. Run `uptime` and `sudo bash scripts/validate.sh` after reboot.
+4. Run `curl -i http://127.0.0.1/nginx-check`.
+5. Run `curl -i http://127.0.0.1/health`.
+6. Run `sudo bash scripts/validate.sh`.
+7. Run `sudo bash scripts/provision.sh` again for idempotency evidence.
+8. Reboot.
+9. Run `uptime` and `sudo bash scripts/validate.sh` after reboot.
 
 ## Expected validation result
 
