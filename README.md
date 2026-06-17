@@ -27,6 +27,7 @@ cloud account, or host-machine destructive actions.
 ```mermaid
 flowchart TD
     Client["Local VM browser or curl"] --> Nginx["Nginx: port 80"]
+    Nginx --> NginxCheck["GET /nginx-check text"]
     Nginx --> Root["GET / landing page"]
     Nginx --> Health["GET /health JSON"]
     Root --> Backend["infra-demo.service: 127.0.0.1:8080"]
@@ -123,7 +124,7 @@ linux-infra-intern-lab/
 | `scripts/validate.sh` | Validation script for service state, HTTP health, firewall, users, permissions, logs, idempotency evidence, and reboot checks. |
 | `scripts/maintenance.sh` | Periodic housekeeping script for old log cleanup and health snapshot collection. |
 | `service/infra-demo/python_server/infra_demo.py` | Backend HTTP service. Serves `/` as a small status page and `/health` as JSON. |
-| `service/infra-demo/nginx_server/infra_demo.conf` | Nginx frontend. Publishes `/` and `/health` on port `80`. |
+| `service/infra-demo/nginx_server/infra_demo.conf` | Nginx frontend. Publishes `/nginx-check`, `/`, and `/health` on port `80`. |
 | `config/infra-demo.env` | Non-secret runtime configuration for host, port, and log directory. |
 | `systemd/infra-demo.service` | systemd unit that starts the backend service on boot. |
 | `systemd/infra-maintenance.service` | systemd oneshot unit that runs maintenance work. |
@@ -176,6 +177,7 @@ Check the web endpoints:
 
 ```bash
 curl -i http://localhost/
+curl -i http://localhost/nginx-check
 curl -i http://localhost/health
 curl -i http://localhost:8080/health
 curl -s http://localhost/ | grep "Hello from infra-demo local VM"
@@ -214,6 +216,7 @@ systemctl is-enabled infra-demo
 systemctl is-active infra-demo
 systemctl status infra-demo
 curl -i http://localhost/
+curl -i http://localhost/nginx-check
 curl -i http://localhost/health
 curl -s http://localhost/ | grep "Hello from infra-demo local VM"
 journalctl -u infra-demo --no-pager -n 30
@@ -351,6 +354,7 @@ Service proof:
 systemctl is-active infra-demo
 systemctl is-active nginx
 curl -i http://127.0.0.1/
+curl -i http://127.0.0.1/nginx-check
 curl -i http://127.0.0.1/health
 curl -s http://127.0.0.1/ | grep "Hello from infra-demo local VM"
 ```

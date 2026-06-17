@@ -23,6 +23,7 @@ check "nginx active" systemctl is-active --quiet nginx
 check "maintenance timer active" systemctl is-active --quiet infra-maintenance.timer
 
 section "HTTP checks"
+check "Nginx direct check responds" curl -fsS http://127.0.0.1/nginx-check
 check "Nginx landing page responds" curl -fsS http://127.0.0.1/
 check "Nginx /health responds" curl -fsS http://127.0.0.1/health
 check "backend /health responds" curl -fsS http://127.0.0.1:8080/health
