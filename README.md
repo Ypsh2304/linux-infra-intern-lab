@@ -308,7 +308,7 @@ sudo bash scripts/validate.sh
 
 ## Demo Video
 
-1. [![Structure Overview](https://img.shields.io/badge/📂__Repository__Structure__Overview-0969DA?style=for-the-badge&logoColor=white)](https://bit.ly/4eA6GAj))
+1. [![Structure Overview](https://img.shields.io/badge/📂__Repository__Structure__Overview-0969DA?style=for-the-badge&logoColor=white)](https://bit.ly/4eA6GAj)
 2. [![VMware Demo](https://img.shields.io/badge/🖥️__Demo__on__VMware-2C8EBB?style=for-the-badge&logo=vmware&logoColor=white)](https://bit.ly/3QK1X78)
 
 ## Safety Notes
