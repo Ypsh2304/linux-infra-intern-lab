@@ -22,11 +22,4 @@ The script checks:
 - the backend health endpoint at `127.0.0.1:8080/health`
 - listening ports, recent logs, and UFW status
 
-Suggested evidence:
-
-```text
-evidence/bonus-monitoring-rollback-dryrun.png
-```
-
-`node-exporter-notes.md` is documentation-only. It explains the next monitoring
-step without adding unnecessary runtime scope to the assignment VM.
+`node-exporter-notes.md` is documentation-only. It explains the next monitoring step without adding unnecessary runtime scope to the assignment VM.
