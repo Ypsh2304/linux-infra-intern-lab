@@ -26,28 +26,19 @@ cloud images, cloud accounts, or host-machine destructive actions.
 
 ```mermaid
 flowchart TD
-    VM["Local Ubuntu Server VM"] --> Provision["scripts/provision.sh"]
-    Provision --> Users["Users and directories"]
-    Provision --> ServiceFiles["Service files and config"]
-    Provision --> Hardening["SSH, UFW, permissions, update timers"]
-
-    ServiceFiles --> Systemd["infra-demo.service"]
-    Systemd --> Backend["Python backend: 127.0.0.1:8080"]
-    Backend --> Health["GET /health"]
-    Backend --> Page["GET /"]
-    Backend --> Logs["journalctl + /var/log/infra-demo"]
-
-    ServiceFiles --> Nginx["Nginx frontend: port 80"]
-    Nginx --> Page
-    Nginx --> Health
-
-    ServiceFiles --> Timer["infra-maintenance.timer"]
-    Timer --> Maintenance["scripts/maintenance.sh"]
-
-    Validate["scripts/validate.sh"] --> Systemd
-    Validate --> Nginx
-    Validate --> Health
-    Validate --> Hardening
+    Client["Local VM browser or curl"] --> Nginx["Nginx: port 80"]
+    Nginx --> Root["GET / landing page"]
+    Nginx --> Health["GET /health JSON"]
+    Root --> Backend["infra-demo.service: 127.0.0.1:8080"]
+    Health --> Backend
+    Backend --> Logs["journald + /var/log/infra-demo"]
+    Timer["infra-maintenance.timer"] --> Maintenance["scripts/maintenance.sh"]
+    Provision["scripts/provision.sh"] --> Nginx
+    Provision --> Backend
+    Provision --> Timer
+    Validate["scripts/validate.sh"] --> Nginx
+    Validate --> Backend
+    Validate --> Logs
 ```
 
 ## Workflow
@@ -57,18 +48,20 @@ flowchart TD
     Fresh["Fresh local VM"] --> Git["Install Git"]
     Git --> Repo["Clone or pull repository"]
     Repo --> ProvisionRun["Run provision.sh"]
-    ProvisionRun --> ValidateRun["Run validate.sh"]
-    ValidateRun --> Evidence["Capture milestone evidence"]
-    Evidence --> SecondRun["Run provision.sh again"]
+    ProvisionRun --> ServiceProof["Check systemd, Nginx, / and /health"]
+    ServiceProof --> ValidateRun["Run validate.sh"]
+    ValidateRun --> SecondRun["Run provision.sh again"]
     SecondRun --> Reboot["Reboot VM"]
     Reboot --> FinalValidate["Run validate.sh after reboot"]
-    FinalValidate --> Submit["Record demo and submit repository"]
+    FinalValidate --> Bonus["Optional bonus evidence"]
+    Bonus --> Submit["Record demo and submit repository"]
 ```
 
 ## Repository Layout
 
 ```text
 linux-infra-intern-lab/
++-- .dockerignore
 +-- README.md
 +-- config/
 |   +-- infra-demo.env
@@ -94,11 +87,24 @@ linux-infra-intern-lab/
 |   +-- infra-maintenance.service
 |   +-- infra-maintenance.timer
 +-- bonus/
+    +-- README.md
+    +-- README-BONUS-SECTION.md
     +-- ansible/
+    |   +-- README.md
+    |   +-- playbook.yml
     +-- docker/
+    |   +-- Dockerfile
+    |   +-- README.md
+    |   +-- run-docker-demo.sh
     +-- monitoring/
+    |   +-- README.md
+    |   +-- check-infra-demo.sh
+    |   +-- node-exporter-notes.md
     +-- rollback/
+    |   +-- README.md
+    |   +-- uninstall-infra-demo.sh
     +-- vm-snapshot-and-template/
+        +-- README.md
 ```
 
 ## Component Map
@@ -120,6 +126,7 @@ linux-infra-intern-lab/
 | `docs/troubleshooting.md` | Recovery notes for provisioning, SSH, firewall, service, and timer issues. |
 | `docs/fr-milestone-map.md` | Functional requirement and milestone traceability map. |
 | `bonus/` | Optional stretch-goal material. Not required for the baseline flow. |
+| `.dockerignore` | Keeps Docker build context small by excluding Git data, screenshots, docs, and unrelated bonus folders. |
 
 ## Requirement Coverage
 
@@ -237,6 +244,15 @@ Full reasoning is documented in `docs/hardening-checklist.md`.
 
 Optional stretch-goal material is included under `bonus/`.
 
+| Stretch goal | Location |
+|---|---|
+| Ansible equivalent | `bonus/ansible/playbook.yml` |
+| Local VM snapshot and restore flow | `bonus/vm-snapshot-and-template/README.md` |
+| Local VM template/export notes | `bonus/vm-snapshot-and-template/README.md` |
+| Monitoring checks and node_exporter notes | `bonus/monitoring/` |
+| Docker deployment of the demo service | `bonus/docker/` |
+| Rollback/uninstall with safety checks | `bonus/rollback/` |
+
 ```bash
 bash -n bonus/monitoring/check-infra-demo.sh
 bash -n bonus/docker/run-docker-demo.sh
@@ -261,13 +277,8 @@ Docker, if Docker is already available:
 bash bonus/docker/run-docker-demo.sh
 ```
 
-Bonus folders:
-
-- `bonus/ansible/`: local Ansible equivalent
-- `bonus/docker/`: optional container build for the backend service
-- `bonus/monitoring/`: local service, HTTP, port, timer, and firewall checks
-- `bonus/rollback/`: dry-run-first uninstall workflow
-- `bonus/vm-snapshot-and-template/`: local snapshot and template notes
+The Docker build uses a root `.dockerignore` so screenshots, Git metadata, and
+unrelated docs are not sent to the build context.
 
 ## Troubleshooting
 
@@ -294,11 +305,17 @@ landing page, validation output, and reboot survival.
 
 ## AI Assistance Notes
 
-AI assistance was used for requirement breakdown, command explanation, script
-review, documentation structure, and optional stretch-goal review. All submitted
-commands and configuration are expected to be understood and verified in the
-local VM with real evidence from `systemctl`, `curl`, `journalctl`, `ufw`,
-`ss`, `nginx -t`, and `validate.sh`.
+AI assistance was used as a review and documentation aid for:
 
-No secrets, private keys, passwords, tokens, or cloud credentials are required
-or committed.
+- mapping the assignment text to FR1-FR8 and the milestone evidence plan
+- explaining commands before they were added to scripts or documentation
+- comparing the Ansible, Docker, Nginx, and node_exporter bonus material with
+  current official documentation
+- improving README structure, command formatting, and the optional bonus section
+- checking for unsafe paths, secrets, cloud references, and avoidable build
+  context in the Docker workflow
+
+Manual verification remains required. Final evidence should come from the local
+VM using `systemctl`, `curl`, `journalctl`, `ufw`, `ss`, `nginx -t`,
+`validate.sh`, and the optional bonus commands. No secrets, private keys,
+passwords, tokens, or cloud credentials are required or committed.

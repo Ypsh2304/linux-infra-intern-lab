@@ -22,7 +22,7 @@ cleanup() {
 }
 
 cleanup
-docker_cmd build --pull -f bonus/docker/Dockerfile -t "$IMAGE" .
+docker_cmd build --pull --no-cache -f bonus/docker/Dockerfile -t "$IMAGE" .
 docker_cmd run -d --name "$CONTAINER" -p 18080:8080 "$IMAGE" >/dev/null
 trap cleanup EXIT
 

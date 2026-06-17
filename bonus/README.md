@@ -17,6 +17,17 @@ bonus/
 +-- README-BONUS-SECTION.md     Optional section for the main README
 ```
 
+## Stretch Goal Map
+
+| Assignment stretch goal | Bonus path |
+|---|---|
+| Ansible playbook equivalent | `bonus/ansible/playbook.yml` |
+| Snapshot and restore instructions | `bonus/vm-snapshot-and-template/README.md` |
+| Local VM template/export notes | `bonus/vm-snapshot-and-template/README.md` |
+| Monitoring endpoint or node_exporter notes | `bonus/monitoring/` |
+| Docker deployment of the demo service | `bonus/docker/` |
+| Rollback or uninstall script | `bonus/rollback/` |
+
 ## Recommended Order
 
 Run the required project first. Add bonus evidence only after provisioning,
@@ -50,6 +61,9 @@ bash bonus/docker/run-docker-demo.sh
 
 Docker is optional. Run it only if Docker is already installed or there is time
 to install it safely in the local VM.
+
+The Docker build uses the root `.dockerignore` to keep evidence screenshots,
+Git metadata, and unrelated documentation out of the build context.
 
 ## Suggested Evidence
 
