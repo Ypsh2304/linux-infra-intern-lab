@@ -6,8 +6,8 @@ deploys a systemd-managed demo service behind Nginx, applies basic hardening,
 schedules maintenance automation, and validates the result before and after
 reboot.
 
-The lab is scoped to a local virtual machine only. It does not use cloud VMs,
-cloud images, cloud accounts, or host-machine destructive actions.
+The lab is scoped to a local virtual machine only. It does not use a cloud VM,
+cloud account, or host-machine destructive actions.
 
 ## Scope
 
@@ -261,10 +261,6 @@ Optional stretch-goal material is included under `bonus/`.
 | Docker deployment of the demo service | `bonus/docker/` |
 | Rollback/uninstall with safety checks | `bonus/rollback/` |
 
-The commands below are optional proof commands. They do not replace the required
-`scripts/provision.sh`, `scripts/validate.sh`, systemd, hardening, and reboot
-evidence.
-
 ## Bonus Verification Commands
 
 Run bonus checks only after the required provisioning, validation, and reboot
@@ -401,7 +397,7 @@ landing page, validation output, and reboot survival.
 ## Safety Notes
 
 - Scripts are scoped to the local VM lab.
-- No cloud VM or cloud provider is required or referenced.
+- No cloud VM or cloud provider is required.
 - No script formats disks, repartitions storage, or modifies the Windows host.
 - Rollback defaults to dry-run and requires explicit `--execute` plus typed confirmation.
 - SSH access is not disabled; root login and unsafe SSH defaults are restricted.
@@ -431,17 +427,13 @@ Before submission, confirm:
 
 ## AI Assistance Notes
 
-AI assistance was used as a review and documentation aid for:
+AI assistance was used to support research, drafting, and review in these areas:
 
 - mapping the assignment text to FR1-FR8 and the milestone evidence plan
-- explaining commands before they were added to scripts or documentation
-- comparing the Ansible, Docker, Nginx, and node_exporter bonus material with
-  current official documentation
-- improving README structure, command formatting, and the optional bonus section
-- checking for unsafe paths, secrets, cloud references, and avoidable build
-  context in the Docker workflow
-
-Manual verification remains required. Final evidence should come from the local
-VM using `systemctl`, `curl`, `journalctl`, `ufw`, `ss`, `nginx -t`,
-`validate.sh`, and the optional bonus commands. No secrets, private keys,
-passwords, tokens, or cloud credentials are required or committed.
+- exploring Linux commands and understanding what each command checks
+- finding official documentation relevant to systemd, Nginx, Ansible, Docker,
+  UFW, and node_exporter
+- generating early boilerplate for scripts, service files, and documentation
+- refining Bash script structure, command output, and README formatting
+- reviewing the project for unsafe paths, secret-like content, cloud references,
+  and unnecessary Docker build context
