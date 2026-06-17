@@ -98,7 +98,7 @@ sudo cat /var/lib/infra-demo/last-snapshot.txt
 
 ## Should validate.sh run automatically after reboot?
 
-No. The assignment asks you to prove reboot survival by rebooting the VM,
+No. Reboot survival by rebooting the VM,
 logging back in, showing `uptime`, and running `sudo bash scripts/validate.sh`
 again. The systemd-managed services start automatically; the validation script
 is a manual proof command for your evidence screenshot/video.
