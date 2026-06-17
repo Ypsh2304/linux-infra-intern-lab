@@ -309,7 +309,8 @@ sudo bash scripts/validate.sh
 ## Demo Video
 
 ```text
-<add demo video link>
+1. repository sturtcure overview : https://bit.ly/4fSuiCp
+2. Demo on VMware : https://bit.ly/3QK1X78
 ```
 
 ## Safety Notes
