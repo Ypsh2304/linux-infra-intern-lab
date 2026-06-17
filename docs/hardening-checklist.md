@@ -37,16 +37,3 @@ intentionally skipped for safety in a local VM lab.
 | Full disk encryption | Must be chosen during VM/OS installation, not safely applied by a provisioning script afterward. |
 | Disabling core Ubuntu services | The assignment says disable unused services where safe. No clearly unused enabled service is installed by this lab beyond the intentionally required ones. |
 
-## Post-lab next steps
-
-After confirming SSH key access from the host machine, the next safe hardening
-step would be:
-
-```bash
-sudo install -m 0644 -o root -g root /dev/null /etc/ssh/sshd_config.d/100-key-only.conf
-printf 'PasswordAuthentication no\n' | sudo tee /etc/ssh/sshd_config.d/100-key-only.conf
-sudo sshd -t
-sudo systemctl reload ssh
-```
-
-Only do this after proving you can still log in through SSH keys or VM console.
