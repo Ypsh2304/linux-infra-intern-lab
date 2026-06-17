@@ -27,15 +27,18 @@ TIMEZONE="Asia/Kolkata"
 
 APP_DIR="/opt/${SVC}"
 PY_APP_DIR="${APP_DIR}/python_server"
+
 CONF_DIR="/etc/${SVC}"
 STATE_DIR="/var/lib/${SVC}"
+
 LOG_DIR="/var/log/${SVC}"
+
 NGINX_SITE_AVAILABLE="/etc/nginx/sites-available/${SVC}.conf"
 NGINX_SITE_ENABLED="/etc/nginx/sites-enabled/${SVC}.conf"
 
 PYTHON_SRC="${REPO_ROOT}/service/infra-demo/python_server/infra_demo.py"
-NGINX_SRC="${REPO_ROOT}/service/infra-demo/nginx_server/infra_demo.conf"
 
+NGINX_SRC="${REPO_ROOT}/service/infra-demo/nginx_server/infra_demo.conf"
 PKGS=(curl git tree python3 ufw unattended-upgrades openssh-server nginx)
 
 log() { printf '\n[provision] %s\n' "$1"; }
