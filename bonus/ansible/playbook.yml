@@ -159,7 +159,7 @@
       notify: reload nginx
 
     - name: Validate nginx configuration
-      ansible.builtin.command: nginx -t
+      ansible.builtin.command: /usr/sbin/nginx -t
       changed_when: false
 
     - name: Copy SSH hardening drop-in

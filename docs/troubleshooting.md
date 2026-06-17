@@ -29,14 +29,20 @@ port 8080 already in use.
 Check nginx:
 
 ```bash
-nginx -t
+sudo /usr/sbin/nginx -t
 systemctl status nginx --no-pager
 journalctl -u nginx -n 50 --no-pager
 curl -i http://127.0.0.1/health
 ```
 
-If `nginx -t` fails, inspect `/etc/nginx/sites-enabled/infra-demo.conf`.
+If `/usr/sbin/nginx -t` fails, inspect `/etc/nginx/sites-enabled/infra-demo.conf`.
 Rerunning `sudo bash scripts/provision.sh` redeploys the site file.
+
+If `sudo nginx -t` says `command not found`, use the full path:
+
+```bash
+sudo /usr/sbin/nginx -t
+```
 
 ## `ufw` asks about disrupting SSH
 
@@ -100,7 +106,7 @@ is a manual proof command for your evidence screenshot/video.
 ```bash
 sudo reboot
 # log back in after boot
-cd linux-infra-intern-assignment
+cd ~/linux-infra-intern-lab
 uptime
 sudo bash scripts/validate.sh
 ```

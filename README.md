@@ -223,6 +223,7 @@ journalctl -u infra-demo --no-pager -n 30
 ufw status verbose
 sudo ss -ltnp
 systemctl list-timers infra-maintenance.timer
+sudo systemctl start infra-maintenance.service
 sudo stat -c "%U:%G %a %n" /etc/infra-demo/infra-demo.env /var/log/infra-demo
 sudo cat /var/lib/infra-demo/last-snapshot.txt
 ```
@@ -337,7 +338,7 @@ Skip Docker if it is not already installed. Do not run rollback with
 ```bash
 systemctl status infra-demo nginx
 journalctl -u infra-demo --no-pager -n 50
-sudo nginx -t
+sudo /usr/sbin/nginx -t
 sudo ss -ltnp
 sudo ufw status verbose
 sudo sshd -t
@@ -348,8 +349,31 @@ See `docs/troubleshooting.md` for recovery notes.
 
 ## Demo Recording Plan
 
-Record from the local VM console or an SSH terminal connected to the local VM.
-The demo should stay within 1-3 minutes.
+Record the main required flow first. Keep bonus material for screenshots or a
+short final mention only if time allows.
+
+Windows 11 recording setup:
+
+1. Keep VMware in a normal window instead of full screen.
+2. Start Snipping Tool recording with `Windows + Shift + R`, or open Snipping
+   Tool and choose record mode.
+3. Select only the VMware window area so private desktop content is not recorded.
+4. Enable microphone audio if the recorder shows a microphone option.
+5. Save the recording as an MP4, trim the start/end if needed, and add the final
+   video link under `Demo Video`.
+
+Suggested spoken intro:
+
+```text
+Hello and warm greetings to the hiring team at Vyorius Drones Private Limited.
+My name is <your name>. This is my Linux Infrastructure Intern take-home lab.
+I am demonstrating a local VMware Ubuntu Server baseline with Bash provisioning,
+systemd services, Nginx, a Python health backend, UFW hardening, maintenance
+automation, validation checks, and reboot survival. No cloud VM is used.
+```
+
+Start by showing the VMware snapshot manager or a fresh VM console. Then run
+these commands in order.
 
 Local VM proof:
 
@@ -358,22 +382,45 @@ lsb_release -a
 hostnamectl
 ```
 
+What to say: this proves the environment is Ubuntu Server running locally in
+VMware, not a cloud VM.
+
 Repository proof:
 
 ```bash
 find . -maxdepth 3 -type f | sort
 ```
 
+What to say: this shows the project files: scripts, systemd units, service
+code, config, docs, evidence, and optional bonus material.
+
+Provisioning proof:
+
+```bash
+sudo bash scripts/provision.sh
+```
+
+What to say: this script checks the OS, installs packages, creates the `linus`
+sudo user and `infra-demo` service user, copies service/config files, enables
+systemd units, configures Nginx, applies UFW/SSH hardening, and enables update
+automation.
+
 Service proof:
 
 ```bash
 systemctl is-active infra-demo
 systemctl is-active nginx
+sudo /usr/sbin/nginx -t
 curl -i http://127.0.0.1/
 curl -i http://127.0.0.1/nginx-check
 curl -i http://127.0.0.1/health
 curl -s http://127.0.0.1/ | grep "Hello from infra-demo local VM"
 ```
+
+What to say: `infra-demo` is the Python backend managed by systemd. Nginx is
+the public HTTP frontend. `/nginx-check` proves Nginx itself is serving text,
+`/` proves Nginx proxies to the backend landing page, and `/health` proves the
+health endpoint returns successfully.
 
 Hardening and automation proof:
 
@@ -381,7 +428,14 @@ Hardening and automation proof:
 sudo ufw status verbose
 sudo ss -ltnp
 systemctl list-timers infra-maintenance.timer --no-pager
+sudo systemctl start infra-maintenance.service
+sudo cat /var/lib/infra-demo/last-snapshot.txt
 ```
+
+What to say: UFW allows only SSH and HTTP, `ss` shows expected listening ports,
+and the timer/service pair writes a local health snapshot under `/var/lib`.
+The snapshot file needs `sudo` because the state directory is intentionally
+protected.
 
 Reboot survival proof:
 

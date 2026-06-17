@@ -180,7 +180,7 @@ deploy_nginx() {
     rm -f /etc/nginx/sites-enabled/default
     ln -sfn "$NGINX_SITE_AVAILABLE" "$NGINX_SITE_ENABLED"
 
-    nginx -t
+    /usr/sbin/nginx -t
     systemctl enable --now nginx
     systemctl reload nginx || systemctl restart nginx
 }

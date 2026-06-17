@@ -90,7 +90,7 @@ check "env file is root:${SVC_USER} mode 640" \
 check "nginx site is installed" \
     test -L "$NGINX_SITE"
 check "nginx config syntax is valid" \
-    nginx -t
+    /usr/sbin/nginx -t
 
 section "SSH hardening"
 check "PermitRootLogin is disabled" \
