@@ -9,12 +9,29 @@ evidence screenshots, and reboot proof.
 
 ```text
 bonus/
-+-- ansible/                    Local Ansible equivalent
-+-- docker/                     Optional Python backend container
-+-- monitoring/                 Local health and host checks
-+-- rollback/                   Dry-run-first uninstall workflow
-+-- vm-snapshot-and-template/   Local snapshot and template notes
-+-- README-BONUS-SECTION.md     Optional section for the main README
+  README.md
+  README-BONUS-SECTION.md
+
+  ansible/
+    README.md
+    playbook.yml
+
+  docker/
+    Dockerfile
+    README.md
+    run-docker-demo.sh
+
+  monitoring/
+    README.md
+    check-infra-demo.sh
+    node-exporter-notes.md
+
+  rollback/
+    README.md
+    uninstall-infra-demo.sh
+
+  vm-snapshot-and-template/
+    README.md
 ```
 
 ## Stretch Goal Map

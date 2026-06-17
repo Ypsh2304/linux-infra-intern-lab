@@ -61,50 +61,58 @@ flowchart TD
 
 ```text
 linux-infra-intern-lab/
-+-- .dockerignore
-+-- README.md
-+-- config/
-|   +-- infra-demo.env
-+-- docs/
-|   +-- fr-milestone-map.md
-|   +-- hardening-checklist.md
-|   +-- local-vm-reprovisioning.md
-|   +-- test-plan.md
-|   +-- troubleshooting.md
-+-- evidence/
-+-- scripts/
-|   +-- maintenance.sh
-|   +-- provision.sh
-|   +-- validate.sh
-+-- service/
-|   +-- infra-demo/
-|       +-- nginx_server/
-|       |   +-- infra_demo.conf
-|       +-- python_server/
-|           +-- infra_demo.py
-+-- systemd/
-|   +-- infra-demo.service
-|   +-- infra-maintenance.service
-|   +-- infra-maintenance.timer
-+-- bonus/
-    +-- README.md
-    +-- README-BONUS-SECTION.md
-    +-- ansible/
-    |   +-- README.md
-    |   +-- playbook.yml
-    +-- docker/
-    |   +-- Dockerfile
-    |   +-- README.md
-    |   +-- run-docker-demo.sh
-    +-- monitoring/
-    |   +-- README.md
-    |   +-- check-infra-demo.sh
-    |   +-- node-exporter-notes.md
-    +-- rollback/
-    |   +-- README.md
-    |   +-- uninstall-infra-demo.sh
-    +-- vm-snapshot-and-template/
-        +-- README.md
+  README.md
+  .dockerignore
+
+  config/
+    infra-demo.env
+
+  scripts/
+    provision.sh
+    validate.sh
+    maintenance.sh
+
+  systemd/
+    infra-demo.service
+    infra-maintenance.service
+    infra-maintenance.timer
+
+  service/
+    infra-demo/
+      nginx_server/
+        infra_demo.conf
+      python_server/
+        infra_demo.py
+
+  docs/
+    fr-milestone-map.md
+    hardening-checklist.md
+    local-vm-reprovisioning.md
+    test-plan.md
+    troubleshooting.md
+
+  evidence/
+    milestone screenshots and terminal proof
+
+  bonus/
+    README.md
+    README-BONUS-SECTION.md
+    ansible/
+      README.md
+      playbook.yml
+    docker/
+      Dockerfile
+      README.md
+      run-docker-demo.sh
+    monitoring/
+      README.md
+      check-infra-demo.sh
+      node-exporter-notes.md
+    rollback/
+      README.md
+      uninstall-infra-demo.sh
+    vm-snapshot-and-template/
+      README.md
 ```
 
 ## Component Map
