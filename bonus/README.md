@@ -64,7 +64,8 @@ sudo bash bonus/rollback/uninstall-infra-demo.sh --dry-run
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y ansible
+sudo apt-get install -y ansible-core
+ansible --version
 ansible-playbook -i localhost, -c local bonus/ansible/playbook.yml --syntax-check
 ansible-playbook -i localhost, -c local bonus/ansible/playbook.yml --check --diff
 ansible-playbook -i localhost, -c local bonus/ansible/playbook.yml

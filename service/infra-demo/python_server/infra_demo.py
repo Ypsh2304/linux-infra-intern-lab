@@ -198,7 +198,7 @@ class HealthHandler(BaseHTTPRequestHandler):
 
     def send_json(self, status: HTTPStatus, payload: dict[str, Any]) -> None:
         """Serialize payload as JSON and send a complete HTTP response."""
-        body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
+        body = (json.dumps(payload, separators=(",", ":")) + "\n").encode("utf-8")
 
         self.send_response(status.value)
         self.send_header("Content-Type", "application/json; charset=utf-8")

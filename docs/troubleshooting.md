@@ -75,7 +75,7 @@ Then restart the service:
 
 ```bash
 sudo systemctl restart infra-demo
-ss -ltnp | grep 8080
+sudo ss -ltnp | grep 8080
 ```
 
 The backend should listen on `127.0.0.1:8080`, not `0.0.0.0:8080`.
@@ -87,7 +87,7 @@ It runs 5 minutes after boot and then every 15 minutes:
 ```bash
 systemctl list-timers infra-maintenance.timer --no-pager
 sudo systemctl start infra-maintenance.service
-cat /var/lib/infra-demo/last-snapshot.txt
+sudo cat /var/lib/infra-demo/last-snapshot.txt
 ```
 
 ## Should validate.sh run automatically after reboot?

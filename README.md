@@ -221,9 +221,21 @@ curl -i http://localhost/health
 curl -s http://localhost/ | grep "Hello from infra-demo local VM"
 journalctl -u infra-demo --no-pager -n 30
 ufw status verbose
-ss -ltnp
+sudo ss -ltnp
 systemctl list-timers infra-maintenance.timer
-stat -c "%U:%G %a %n" /etc/infra-demo/infra-demo.env /var/log/infra-demo
+sudo stat -c "%U:%G %a %n" /etc/infra-demo/infra-demo.env /var/log/infra-demo
+sudo cat /var/lib/infra-demo/last-snapshot.txt
+```
+
+To save terminal-log evidence in the repository:
+
+```bash
+mkdir -p evidence
+script -a evidence/manual-validation.log
+sudo bash scripts/validate.sh
+journalctl -u infra-demo --no-pager -n 30
+sudo ufw status verbose
+exit
 ```
 
 ## Milestone Evidence Plan
@@ -275,7 +287,8 @@ Ansible check mode:
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y ansible
+sudo apt-get install -y ansible-core
+ansible --version
 ansible-playbook -i localhost, -c local bonus/ansible/playbook.yml --syntax-check
 ansible-playbook -i localhost, -c local bonus/ansible/playbook.yml --check --diff
 ```
@@ -304,6 +317,9 @@ bash -n bonus/docker/run-docker-demo.sh
 bash bonus/docker/run-docker-demo.sh
 ```
 
+If Docker is not installed and there is time, use the Ubuntu install notes in
+`bonus/docker/README.md`.
+
 Suggested bonus evidence:
 
 ```text
@@ -321,10 +337,10 @@ Skip Docker if it is not already installed. Do not run rollback with
 ```bash
 systemctl status infra-demo nginx
 journalctl -u infra-demo --no-pager -n 50
-nginx -t
-ss -ltnp
-ufw status verbose
-sshd -t
+sudo nginx -t
+sudo ss -ltnp
+sudo ufw status verbose
+sudo sshd -t
 systemctl list-timers infra-maintenance.timer
 ```
 

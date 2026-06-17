@@ -49,9 +49,9 @@ Evidence:
 
 ```bash
 ufw status verbose
-ss -ltnp
+sudo ss -ltnp
 systemctl list-timers infra-maintenance.timer --no-pager
-stat -c '%U:%G %a %n' /etc/infra-demo/infra-demo.env
+sudo stat -c '%U:%G %a %n' /etc/infra-demo/infra-demo.env
 sudo bash scripts/provision.sh
 ```
 
