@@ -69,18 +69,3 @@ sudo bash scripts/validate.sh
 ### Cleanup, documentation, and demo
 
 Evidence: final GitHub repo, demo video link, organized `evidence/` files.
-
-## Suggested commit messages
-
-```text
-docs: explain local VM setup architecture reboot flow and AI assistance notes
-feat(FR3): add non-secret runtime environment file for the infra-demo service
-feat(FR2-FR3): add Python health backend with JSON endpoint journald output and file logging
-feat(FR2): add nginx reverse proxy config for the infra-demo health endpoint
-feat(FR2-FR3): add systemd unit to run infra-demo backend from environment configuration
-feat(FR3-FR5): add maintenance script service and timer for log cleanup and health snapshots
-feat(FR1-FR5): add idempotent provisioning for packages users services firewall SSH hardening and updates
-feat(FR7-FR8): add validation script for service health firewall ports users permissions logs and reboot checks
-docs(FR5-FR8): document hardening reprovisioning validation test plan and troubleshooting
-chore: track evidence directory for screenshots and reboot validation output
-```
