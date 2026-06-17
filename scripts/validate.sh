@@ -56,8 +56,12 @@ check "infra-maintenance.timer is enabled"  systemctl is-enabled --quiet "$MAINT
 check "infra-maintenance.timer is active"   systemctl is-active --quiet "$MAINT_TIMER"
 
 section "HTTP health"
+check "nginx landing page returns infra-demo message" \
+    bash -c "curl -sf http://127.0.0.1:${PUBLIC_PORT}/ | grep -q 'Hello from infra-demo local VM'"
 check "backend /health returns JSON status" \
     bash -c "curl -sf http://127.0.0.1:${PORT}/health | grep -q '\"status\":\"ok\"'"
+check "backend /health returns service message" \
+    bash -c "curl -sf http://127.0.0.1:${PORT}/health | grep -q '\"message\":\"Hello from infra-demo local VM\"'"
 check "nginx /health reverse proxy returns JSON status" \
     bash -c "curl -sf http://127.0.0.1:${PUBLIC_PORT}/health | grep -q '\"service\":\"infra-demo\"'"
 

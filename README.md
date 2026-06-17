@@ -178,6 +178,7 @@ Check the web endpoints:
 curl -i http://localhost/
 curl -i http://localhost/health
 curl -i http://localhost:8080/health
+curl -s http://localhost/ | grep "Hello from infra-demo local VM"
 ```
 
 Run the idempotency check:
@@ -214,6 +215,7 @@ systemctl is-active infra-demo
 systemctl status infra-demo
 curl -i http://localhost/
 curl -i http://localhost/health
+curl -s http://localhost/ | grep "Hello from infra-demo local VM"
 journalctl -u infra-demo --no-pager -n 30
 ufw status verbose
 ss -ltnp
@@ -350,6 +352,7 @@ systemctl is-active infra-demo
 systemctl is-active nginx
 curl -i http://127.0.0.1/
 curl -i http://127.0.0.1/health
+curl -s http://127.0.0.1/ | grep "Hello from infra-demo local VM"
 ```
 
 Hardening and automation proof:

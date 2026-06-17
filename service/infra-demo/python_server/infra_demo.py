@@ -28,6 +28,7 @@ from urllib.parse import urlsplit
 
 
 SERVICE_NAME = "infra-demo"
+SERVICE_MESSAGE = "Hello from infra-demo local VM"
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8080
 DEFAULT_LOG_DIR = "/var/log/infra-demo"
@@ -119,6 +120,7 @@ def health_payload() -> dict[str, Any]:
     return {
         "status": "ok",
         "service": SERVICE_NAME,
+        "message": SERVICE_MESSAGE,
         "uptime_seconds": round(time.monotonic() - START_TIME, 1),
     }
 
@@ -139,6 +141,7 @@ def landing_page() -> str:
 </head>
 <body>
   <h1>infra-demo is running</h1>
+  <p><strong>{SERVICE_MESSAGE}</strong></p>
   <p>This page is served by the local VM through Nginx and the systemd-managed backend.</p>
   <p>Health endpoint: <code>/health</code></p>
   <p>Service uptime: <code>{uptime}s</code></p>
