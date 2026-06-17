@@ -1,202 +1,176 @@
 # Linux Server Baseline Provisioning Lab
 
-A reproducible local-VM provisioning project for preparing a small Linux server
-baseline. The project installs required packages, creates operational accounts,
-deploys a systemd-managed demo service behind Nginx, applies basic hardening,
-schedules maintenance automation, and validates the result before and after
-reboot.
+A reproducible local-VM Linux provisioning project for preparing a small server baseline. The project installs required packages, creates operational users, deploys a systemd-managed demo service behind Nginx, applies basic hardening, configures maintenance automation, and validates the setup before and after reboot.
 
-The lab is scoped to a local virtual machine only. It does not use a cloud VM,
-cloud account, or host-machine destructive actions.
+The lab is designed for a local virtual machine only. It does not require or use any cloud VM, cloud provider account, or destructive host-machine operations.
 
 ## Scope
 
-| Area | Decision |
-|---|---|
-| Target OS | Ubuntu Server 22.04 LTS or 24.04 LTS |
-| Primary automation | Bash |
-| Service manager | systemd |
-| HTTP frontend | Nginx on port `80` |
-| Backend service | Python standard-library HTTP service on `127.0.0.1:8080` |
-| Firewall | UFW |
-| Evidence source | Local VM screenshots and terminal logs |
-| Bonus scope | Optional Ansible, Docker, monitoring, rollback, and VM snapshot notes |
+| Area                   | Implementation                                                                  |
+| ---------------------- | ------------------------------------------------------------------------------- |
+| Target platform        | Local Ubuntu Server 22.04 LTS or 24.04 LTS VM                                   |
+| Primary automation     | Bash                                                                            |
+| Service manager        | systemd                                                                         |
+| HTTP frontend          | Nginx on port `80`                                                              |
+| Backend service        | Python standard-library HTTP service on `127.0.0.1:8080`                        |
+| Runtime config         | `/etc/infra-demo/infra-demo.env`                                                |
+| Firewall               | UFW                                                                             |
+| Evidence               | Local VM screenshots under `evidence/`                                          |
+| Optional stretch goals | Ansible, monitoring, Docker notes, rollback dry-run, VM snapshot/template notes |
 
 ## Architecture
 
 ```mermaid
-flowchart TD
-    Client["Local VM browser or curl"] --> Nginx["Nginx: port 80"]
-    Nginx --> NginxCheck["GET /nginx-check text"]
-    Nginx --> Root["GET / landing page"]
-    Nginx --> Health["GET /health JSON"]
-    Root --> Backend["infra-demo.service: 127.0.0.1:8080"]
-    Health --> Backend
+flowchart LR
+    Client["curl / browser"] --> Nginx["Nginx :80"]
+    Nginx --> Backend["infra-demo.service :8080"]
     Backend --> Logs["journald + /var/log/infra-demo"]
-    Timer["infra-maintenance.timer"] --> Maintenance["scripts/maintenance.sh"]
-    Provision["scripts/provision.sh"] --> Nginx
-    Provision --> Backend
-    Provision --> Timer
-    Validate["scripts/validate.sh"] --> Nginx
+    Timer["infra-maintenance.timer"] --> Maint["maintenance.sh"]
+    Validate["validate.sh"] --> Nginx
     Validate --> Backend
     Validate --> Logs
 ```
 
-## Workflow
+## Provisioning Flow
 
 ```mermaid
-flowchart TD
-    Fresh["Fresh local VM"] --> Git["Install Git"]
-    Git --> Repo["Clone or pull repository"]
-    Repo --> ProvisionRun["Run provision.sh"]
-    ProvisionRun --> ServiceProof["Check systemd, Nginx, / and /health"]
-    ServiceProof --> ValidateRun["Run validate.sh"]
-    ValidateRun --> SecondRun["Run provision.sh again"]
-    SecondRun --> Reboot["Reboot VM"]
-    Reboot --> FinalValidate["Run validate.sh after reboot"]
-    FinalValidate --> Bonus["Optional bonus evidence"]
-    Bonus --> Submit["Record demo and submit repository"]
+flowchart LR
+    VM["Fresh local VM"] --> Repo["Clone repo"]
+    Repo --> Provision["provision.sh"]
+    Provision --> Check["validate.sh"]
+    Check --> Reboot["Reboot"]
+    Reboot --> Final["validate.sh after reboot"]
 ```
 
 ## Repository Layout
 
 ```text
 linux-infra-intern-lab/
-  README.md
-  .dockerignore
-
-  config/
-    infra-demo.env
-
-  scripts/
-    provision.sh
-    validate.sh
-    maintenance.sh
-
-  systemd/
-    infra-demo.service
-    infra-maintenance.service
-    infra-maintenance.timer
-
-  service/
-    infra-demo/
-      nginx_server/
-        infra_demo.conf
-      python_server/
-        infra_demo.py
-
-  docs/
-    fr-milestone-map.md
-    hardening-checklist.md
-    local-vm-reprovisioning.md
-    test-plan.md
-    troubleshooting.md
-
-  evidence/
-    milestone screenshots and terminal proof
-
-  bonus/
-    README.md
-    README-BONUS-SECTION.md
-    ansible/
-      README.md
-      playbook.yml
-    docker/
-      Dockerfile
-      README.md
-      run-docker-demo.sh
-    monitoring/
-      README.md
-      check-infra-demo.sh
-      node-exporter-notes.md
-    rollback/
-      README.md
-      uninstall-infra-demo.sh
-    vm-snapshot-and-template/
-      README.md
+├── README.md
+├── .dockerignore
+├── config/
+│   └── infra-demo.env
+├── scripts/
+│   ├── provision.sh
+│   ├── validate.sh
+│   └── maintenance.sh
+├── systemd/
+│   ├── infra-demo.service
+│   ├── infra-maintenance.service
+│   └── infra-maintenance.timer
+├── service/
+│   └── infra-demo/
+│       ├── nginx_server/
+│       │   └── infra_demo.conf
+│       └── python_server/
+│           └── infra_demo.py
+├── docs/
+│   ├── fr-milestone-map.md
+│   ├── hardening-checklist.md
+│   ├── local-vm-reprovisioning.md
+│   ├── test-plan.md
+│   └── troubleshooting.md
+├── evidence/
+│   └── milestone screenshots
+└── bonus/
+    ├── README.md
+    ├── ansible/
+    │   ├── README.md
+    │   └── playbook.yml
+    ├── docker/
+    │   ├── Dockerfile
+    │   ├── README.md
+    │   └── run-docker-demo.sh
+    ├── monitoring/
+    │   ├── README.md
+    │   ├── check-infra-demo.sh
+    │   └── node-exporter-notes.md
+    ├── rollback/
+    │   ├── README.md
+    │   └── uninstall-infra-demo.sh
+    └── vm-snapshot-and-template/
+        └── README.md
 ```
 
-## Component Map
+## Component Summary
 
-| Path | Purpose |
-|---|---|
-| `scripts/provision.sh` | Main Bash provisioning script for packages, users, directories, service deployment, Nginx, hardening, and automation setup. |
-| `scripts/validate.sh` | Validation script for service state, HTTP health, firewall, users, permissions, logs, idempotency evidence, and reboot checks. |
-| `scripts/maintenance.sh` | Periodic housekeeping script for old log cleanup and health snapshot collection. |
-| `service/infra-demo/python_server/infra_demo.py` | Backend HTTP service. Serves `/` as a small status page and `/health` as JSON. |
-| `service/infra-demo/nginx_server/infra_demo.conf` | Nginx frontend. Publishes `/nginx-check`, `/`, and `/health` on port `80`. |
-| `config/infra-demo.env` | Non-secret runtime configuration for host, port, and log directory. |
-| `systemd/infra-demo.service` | systemd unit that starts the backend service on boot. |
-| `systemd/infra-maintenance.service` | systemd oneshot unit that runs maintenance work. |
-| `systemd/infra-maintenance.timer` | systemd timer that schedules maintenance. |
-| `docs/hardening-checklist.md` | Applied hardening controls, reasoning, and intentionally skipped controls. |
-| `docs/local-vm-reprovisioning.md` | Local VM snapshot, restore, and rerun workflow. |
-| `docs/test-plan.md` | Manual and automated validation plan. |
-| `docs/troubleshooting.md` | Recovery notes for provisioning, SSH, firewall, service, and timer issues. |
-| `docs/fr-milestone-map.md` | Functional requirement and milestone traceability map. |
-| `bonus/` | Optional stretch-goal material. Not required for the baseline flow. |
-| `.dockerignore` | Keeps Docker build context small by excluding Git data, screenshots, docs, and unrelated bonus folders. |
+| Path                                              | Purpose                                                                                                                                                                     |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scripts/provision.sh`                            | Main idempotent Bash provisioning script. Installs packages, creates users, deploys service files, configures Nginx/systemd/UFW, applies hardening, and enables automation. |
+| `scripts/validate.sh`                             | Validation script for service state, HTTP health, firewall, users, permissions, logs, and reboot survival checks.                                                           |
+| `scripts/maintenance.sh`                          | Periodic maintenance script for log cleanup and health snapshot collection.                                                                                                 |
+| `service/infra-demo/python_server/infra_demo.py`  | Python backend service. Serves `/` and `/health`.                                                                                                                           |
+| `service/infra-demo/nginx_server/infra_demo.conf` | Nginx frontend configuration for publishing the demo service on port `80`.                                                                                                  |
+| `config/infra-demo.env`                           | Non-secret runtime configuration used by the systemd service.                                                                                                               |
+| `systemd/infra-demo.service`                      | systemd unit for the Python backend service.                                                                                                                                |
+| `systemd/infra-maintenance.service`               | systemd oneshot service for maintenance work.                                                                                                                               |
+| `systemd/infra-maintenance.timer`                 | systemd timer for scheduled maintenance.                                                                                                                                    |
+| `docs/hardening-checklist.md`                     | Security settings applied, reasoning, and intentionally skipped items.                                                                                                      |
+| `docs/local-vm-reprovisioning.md`                 | Local VM snapshot, restore, and rerun workflow.                                                                                                                             |
+| `docs/test-plan.md`                               | Manual and automated validation plan.                                                                                                                                       |
+| `docs/troubleshooting.md`                         | Recovery notes for service, firewall, SSH, and provisioning issues.                                                                                                         |
+| `docs/fr-milestone-map.md`                        | Functional requirement and milestone traceability map.                                                                                                                      |
+| `bonus/`                                          | Optional stretch-goal material. Not required for the baseline provisioning flow.                                                                                            |
 
 ## Requirement Coverage
 
-| Requirement | Coverage |
-|---|---|
-| FR1 - Base setup | `provision.sh` detects Ubuntu, updates apt metadata, installs packages, sets timezone, and creates `linus`. |
-| FR2 - Service setup | `infra-demo.service` runs the backend service and Nginx exposes it on port `80`. |
-| FR3 - Logs and config | `infra-demo.env` controls runtime settings; logs are available through journald, Nginx logs, and `/var/log/infra-demo`. |
-| FR4 - Automation quality | Provisioning is idempotent: reruns do not duplicate users or break the service. |
-| FR5 - Basic hardening | SSH safe defaults, UFW rules, restricted file modes, service account isolation, and update timers are applied. |
-| FR6 - Local reprovisioning | Snapshot and restore workflow is documented in `docs/local-vm-reprovisioning.md`. |
-| FR7 - Validation | `validate.sh` checks service, health, ports, firewall, users, permissions, and logs. |
-| FR8 - Reboot survival | `validate.sh` is run before and after reboot to prove service persistence. |
+| Requirement                | Implementation                                                                                                                                  |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| FR1 - Base setup           | `provision.sh` detects Ubuntu, updates apt metadata, installs required packages, configures timezone, and creates the `linus` operational user. |
+| FR2 - Service setup        | `infra-demo.service` runs the Python backend; Nginx exposes the service on port `80`.                                                           |
+| FR3 - Logs and config      | `infra-demo.env` stores runtime config; logs are available through journald, Nginx logs, and `/var/log/infra-demo`.                             |
+| FR4 - Automation quality   | Provisioning can be rerun safely without duplicating users or breaking service configuration.                                                   |
+| FR5 - Basic hardening      | SSH safe defaults, UFW rules, restricted file modes, service account isolation, and update timers are applied.                                  |
+| FR6 - Local reprovisioning | Local VM snapshot and restore workflow is documented in `docs/local-vm-reprovisioning.md`.                                                      |
+| FR7 - Validation           | `validate.sh` checks service state, HTTP health, firewall, ports, users, permissions, and logs.                                                 |
+| FR8 - Reboot survival      | Validation is performed before and after reboot to prove that services restart correctly.                                                       |
 
 ## Quick Start
 
-Run inside the local VM:
+Run inside the local Ubuntu VM:
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y git
+sudo apt-get install -y git curl
 git clone <repo-url> linux-infra-intern-lab
 cd linux-infra-intern-lab
 ```
 
-Provision:
+Provision the server:
 
 ```bash
 sudo bash scripts/provision.sh
 ```
 
-Validate:
+Validate the setup:
 
 ```bash
 sudo bash scripts/validate.sh
 ```
 
-Check the web endpoints:
+Check HTTP endpoints:
 
 ```bash
 curl -i http://localhost/
 curl -i http://localhost/nginx-check
 curl -i http://localhost/health
 curl -i http://localhost:8080/health
-curl -s http://localhost/ | grep "Hello from infra-demo local VM"
 ```
 
-Run the idempotency check:
+Run idempotency proof:
 
 ```bash
 sudo bash scripts/provision.sh
 sudo bash scripts/validate.sh
 ```
 
-Run the reboot survival check:
+Run reboot validation:
 
 ```bash
 sudo reboot
 ```
 
-After the VM is back online:
+After logging back in:
 
 ```bash
 cd ~/linux-infra-intern-lab
@@ -204,87 +178,57 @@ uptime
 sudo bash scripts/validate.sh
 ```
 
-## Manual Evidence Commands
+## Evidence Checklist
 
-```bash
-lsb_release -a
-uname -a
-pwd
-tree -L 3
-id linus
-systemctl is-enabled infra-demo
-systemctl is-active infra-demo
-systemctl status infra-demo
-curl -i http://localhost/
-curl -i http://localhost/nginx-check
-curl -i http://localhost/health
-curl -s http://localhost/ | grep "Hello from infra-demo local VM"
-journalctl -u infra-demo --no-pager -n 30
-ufw status verbose
-sudo ss -ltnp
-systemctl list-timers infra-maintenance.timer
-sudo systemctl start infra-maintenance.service
-sudo stat -c "%U:%G %a %n" /etc/infra-demo/infra-demo.env /var/log/infra-demo
-sudo cat /var/lib/infra-demo/last-snapshot.txt
-```
+Screenshots are stored under `evidence/`.
 
-To save terminal-log evidence in the repository:
-
-```bash
-mkdir -p evidence
-script -a evidence/manual-validation.log
-sudo bash scripts/validate.sh
-journalctl -u infra-demo --no-pager -n 30
-sudo ufw status verbose
-exit
-```
-
-## Milestone Evidence Plan
-
-| Milestone | Evidence |
-|---|---|
-| M1 - Base VM + repo setup | OS version, kernel, repo tree, first successful provisioning run. |
-| M2 - Service + systemd | `systemctl status infra-demo`, landing page, `/health` response, recent journal logs. |
-| M3 - Hardening + automation | UFW status, timer status, permissions check, second provisioning run. |
-| M4 - Validation + reboot testing | `validate.sh` output before reboot and after reboot. |
-| M5 - Cleanup + documentation + demo | Final repository, organized evidence folder, demo video link. |
+| File                                       | Evidence                                                                |
+| ------------------------------------------ | ----------------------------------------------------------------------- |
+| `milestone-1-setup.png`                    | Local VM OS details, repository structure, and Git history.             |
+| `milestone-2-provision-first-run.png`      | Successful first provisioning run.                                      |
+| `milestone-2-service.png`                  | systemd service state, Nginx state, health endpoint, and journald logs. |
+| `milestone-3-hardening.png`                | UFW status, listening ports, and maintenance timer state.               |
+| `milestone-3-permissions.png`              | Operational user, service user, and key file permissions.               |
+| `milestone-3-idempotency.png`              | Second provisioning run showing repeatability.                          |
+| `milestone-4-validation-before-reboot.png` | Successful validation before reboot.                                    |
+| `final-reboot-validation.png`              | Uptime and successful validation after reboot.                          |
+| `bonus-ansible-check.png`                  | Optional Ansible check/diff validation.                                 |
+| `bonus-monitoring-rollback-dryrun.png`     | Optional monitoring output and rollback dry-run proof.                  |
 
 ## Hardening Summary
 
 Applied controls:
 
-- root SSH login disabled
-- empty SSH passwords disabled
-- X11 forwarding disabled
-- authentication attempts limited
-- UFW default incoming policy set to deny
-- only SSH and HTTP/Nginx service ports allowed
-- backend service runs as a no-login system account
-- config file installed as `root:infra-demo` with mode `640`
-- systemd service uses sandboxing directives
-- apt daily update timers enabled
+* root SSH login disabled
+* empty SSH passwords disabled
+* X11 forwarding disabled
+* SSH authentication attempts limited
+* UFW default incoming policy set to deny
+* SSH and HTTP/Nginx allowed
+* backend service bound to loopback
+* service runs as a no-login `infra-demo` system account
+* config file installed as `root:infra-demo` with restricted mode
+* systemd sandboxing directives applied
+* apt daily update timers enabled
 
-Full reasoning is documented in `docs/hardening-checklist.md`.
+Full details are documented in `docs/hardening-checklist.md`.
 
 ## Optional Stretch Goals
 
 Optional stretch-goal material is included under `bonus/`.
 
-| Stretch goal | Location |
-|---|---|
-| Ansible equivalent | `bonus/ansible/playbook.yml` |
-| Local VM snapshot and restore flow | `bonus/vm-snapshot-and-template/README.md` |
-| Local VM template/export notes | `bonus/vm-snapshot-and-template/README.md` |
-| Monitoring checks and node_exporter notes | `bonus/monitoring/` |
-| Docker deployment of the demo service | `bonus/docker/` |
-| Rollback/uninstall with safety checks | `bonus/rollback/` |
+| Stretch goal                                 | Location                                   |
+| -------------------------------------------- | ------------------------------------------ |
+| Ansible equivalent of provisioning flow      | `bonus/ansible/playbook.yml`               |
+| Local VM snapshot and restore workflow       | `bonus/vm-snapshot-and-template/README.md` |
+| Local VM template/export notes               | `bonus/vm-snapshot-and-template/README.md` |
+| Monitoring checks and node_exporter notes    | `bonus/monitoring/`                        |
+| Docker packaging of the demo backend         | `bonus/docker/`                            |
+| Rollback/uninstall script with safety checks | `bonus/rollback/`                          |
 
-## Bonus Verification Commands
+## Bonus Verification
 
-Run bonus checks only after the required provisioning, validation, and reboot
-evidence are complete.
-
-Ansible check mode:
+Ansible syntax and check mode:
 
 ```bash
 sudo apt-get update
@@ -294,7 +238,7 @@ ansible-playbook -i localhost, -c local bonus/ansible/playbook.yml --syntax-chec
 ansible-playbook -i localhost, -c local bonus/ansible/playbook.yml --check --diff
 ```
 
-Ansible apply and proof:
+Ansible apply and validation:
 
 ```bash
 ansible-playbook -i localhost, -c local bonus/ansible/playbook.yml
@@ -310,7 +254,7 @@ bash -n bonus/rollback/uninstall-infra-demo.sh
 sudo bash bonus/rollback/uninstall-infra-demo.sh --dry-run
 ```
 
-Docker proof, only if Docker is already installed:
+Docker proof, if Docker is already installed:
 
 ```bash
 docker --version
@@ -318,137 +262,48 @@ bash -n bonus/docker/run-docker-demo.sh
 bash bonus/docker/run-docker-demo.sh
 ```
 
-If Docker is not installed and there is time, use the Ubuntu install notes in
-`bonus/docker/README.md`.
-
-Suggested bonus evidence:
-
-```text
-evidence/bonus-ansible-check.png
-evidence/bonus-monitoring-rollback-dryrun.png
-evidence/bonus-docker-demo.png
-evidence/bonus-vm-snapshot.png
-```
-
-Skip Docker if it is not already installed. Do not run rollback with
-`--execute` on the final submission VM.
+If Docker is not already installed, the Docker stretch goal can remain documented instead of executed.
 
 ## Troubleshooting
 
+Check service state:
+
 ```bash
-systemctl status infra-demo nginx
+systemctl status infra-demo nginx --no-pager
 journalctl -u infra-demo --no-pager -n 50
+```
+
+Check Nginx configuration:
+
+```bash
 sudo /usr/sbin/nginx -t
+```
+
+Check network and firewall state:
+
+```bash
 sudo ss -ltnp
 sudo ufw status verbose
+```
+
+Check SSH configuration:
+
+```bash
 sudo sshd -t
-systemctl list-timers infra-maintenance.timer
 ```
 
-See `docs/troubleshooting.md` for recovery notes.
-
-## Demo Recording Plan
-
-Record the main required flow first. Keep bonus material for screenshots or a
-short final mention only if time allows.
-
-Windows 11 recording setup:
-
-1. Keep VMware in a normal window instead of full screen.
-2. Start Snipping Tool recording with `Windows + Shift + R`, or open Snipping
-   Tool and choose record mode.
-3. Select only the VMware window area so private desktop content is not recorded.
-4. Enable microphone audio if the recorder shows a microphone option.
-5. Save the recording as an MP4, trim the start/end if needed, and add the final
-   video link under `Demo Video`.
-
-Suggested spoken intro:
-
-```text
-Hello and warm greetings to the hiring team at Vyorius Drones Private Limited.
-My name is <your name>. This is my Linux Infrastructure Intern take-home lab.
-I am demonstrating a local VMware Ubuntu Server baseline with Bash provisioning,
-systemd services, Nginx, a Python health backend, UFW hardening, maintenance
-automation, validation checks, and reboot survival. No cloud VM is used.
-```
-
-Start by showing the VMware snapshot manager or a fresh VM console. Then run
-these commands in order.
-
-Local VM proof:
+Check maintenance timer:
 
 ```bash
-lsb_release -a
-hostnamectl
-```
-
-What to say: this proves the environment is Ubuntu Server running locally in
-VMware, not a cloud VM.
-
-Repository proof:
-
-```bash
-find . -maxdepth 3 -type f | sort
-```
-
-What to say: this shows the project files: scripts, systemd units, service
-code, config, docs, evidence, and optional bonus material.
-
-Provisioning proof:
-
-```bash
-sudo bash scripts/provision.sh
-```
-
-What to say: this script checks the OS, installs packages, creates the `linus`
-sudo user and `infra-demo` service user, copies service/config files, enables
-systemd units, configures Nginx, applies UFW/SSH hardening, and enables update
-automation.
-
-Service proof:
-
-```bash
-systemctl is-active infra-demo
-systemctl is-active nginx
-sudo /usr/sbin/nginx -t
-curl -i http://127.0.0.1/
-curl -i http://127.0.0.1/nginx-check
-curl -i http://127.0.0.1/health
-curl -s http://127.0.0.1/ | grep "Hello from infra-demo local VM"
-```
-
-What to say: `infra-demo` is the Python backend managed by systemd. Nginx is
-the public HTTP frontend. `/nginx-check` proves Nginx itself is serving text,
-`/` proves Nginx proxies to the backend landing page, and `/health` proves the
-health endpoint returns successfully.
-
-Hardening and automation proof:
-
-```bash
-sudo ufw status verbose
-sudo ss -ltnp
 systemctl list-timers infra-maintenance.timer --no-pager
 sudo systemctl start infra-maintenance.service
 sudo cat /var/lib/infra-demo/last-snapshot.txt
 ```
 
-What to say: UFW allows only SSH and HTTP, `ss` shows expected listening ports,
-and the timer/service pair writes a local health snapshot under `/var/lib`.
-The snapshot file needs `sudo` because the state directory is intentionally
-protected.
-
-Reboot survival proof:
+Run full validation:
 
 ```bash
-uptime
 sudo bash scripts/validate.sh
-```
-
-Optional bonus proof:
-
-```bash
-sudo bash bonus/monitoring/check-infra-demo.sh
-sudo bash bonus/rollback/uninstall-infra-demo.sh --dry-run
 ```
 
 ## Demo Video
@@ -457,30 +312,19 @@ sudo bash bonus/rollback/uninstall-infra-demo.sh --dry-run
 <add demo video link>
 ```
 
-The demo should show the local VM, provisioning, systemd service health, Nginx
-landing page, validation output, and reboot survival.
-
-## Deliverables Checklist
-
-| Deliverable | Location |
-|---|---|
-| Public or shared GitHub repository | Repository URL added at submission time |
-| README with setup, assumptions, OS, commands, validation, troubleshooting, AI notes | `README.md` |
-| 1-3 minute demo video link | `README.md` under Demo Video |
-| Milestone screenshots or logs | `evidence/` |
-| Hardening checklist | `docs/hardening-checklist.md` |
-| Clear commit history | `git log --oneline` |
-
 ## Safety Notes
 
-- Scripts are scoped to the local VM lab.
-- No cloud VM or cloud provider is required.
-- No script formats disks, repartitions storage, or modifies the Windows host.
-- Rollback defaults to dry-run and requires explicit `--execute` plus typed confirmation.
-- SSH access is not disabled; root login and unsafe SSH defaults are restricted.
-- Do not commit private keys, passwords, credentials, API tokens, or private screenshots.
+* Scripts are scoped to the local VM lab.
+* No cloud VM or cloud provider is required.
+* No script formats disks, repartitions storage, or modifies the Windows host.
+* Rollback defaults to dry-run and requires explicit execution confirmation.
+* SSH access is not disabled.
+* Root SSH login and unsafe SSH defaults are restricted.
+* No private keys, passwords, credentials, API tokens, or secrets should be committed.
 
 ## Final Submission Checklist
+
+Before submission, verify:
 
 ```bash
 git status --branch --short
@@ -492,26 +336,40 @@ curl -i http://localhost/nginx-check
 curl -i http://localhost/health
 ```
 
-Before submission, confirm:
+Final repository should includes:
 
-- repository link is accessible
-- demo video link is added to this README
-- `provision.sh` and `validate.sh` pass on the local VM
-- systemd service and timer files are included
-- hardening checklist is included
-- evidence folder contains milestone screenshots/logs
-- no secrets are committed
-- all work is documented as local VM work, not cloud work
+* accessible GitHub repository
+* clear README
+* provisioning script
+* validation script
+* systemd service and timer files
+* hardening checklist
+* local VM evidence screenshots
+* demo video link
+* meaningful Git history
+* no secrets
+* no cloud VM references
 
 ## AI Assistance Notes
 
-AI assistance was used to support research, drafting, and review in these areas:
+AI assistance was used for research support, boilerplate drafting, documentation editing, and review against the assignment requirements.
 
-- mapping the assignment text to FR1-FR8 and the milestone evidence plan
-- exploring Linux commands and understanding what each command checks
-- finding official documentation relevant to systemd, Nginx, Ansible, Docker,
-  UFW, and node_exporter
-- generating early boilerplate for scripts, service files, and documentation
-- refining Bash script structure, command output, and README formatting
-- reviewing the project for unsafe paths, secret-like content, cloud references,
-  and unnecessary Docker build context
+AI helped with:
+
+* mapping assignment requirements to FR1-FR8
+* organizing the milestone evidence plan
+* explaining Linux, systemd, Nginx, UFW, Ansible, Docker, and rollback concepts
+* drafting and refining scripts, service files, and documentation
+* reviewing the project for unsafe paths, secret-like content, cloud references, and unnecessary files
+
+Manual verification was performed inside a local VMware Ubuntu VM by:
+
+* running `scripts/provision.sh`
+* checking systemd service state
+* validating Nginx and `/health`
+* reviewing firewall rules
+* checking users and permissions
+* running `scripts/validate.sh`
+* rebooting the VM
+* running validation again after reboot
+* collecting local VM screenshot evidence
