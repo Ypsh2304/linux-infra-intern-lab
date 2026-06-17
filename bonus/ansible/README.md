@@ -8,6 +8,7 @@ Run from the repository root:
 ```bash
 sudo apt-get update
 sudo apt-get install -y ansible
+ansible-playbook -i localhost, -c local bonus/ansible/playbook.yml --syntax-check
 ansible-playbook -i localhost, -c local bonus/ansible/playbook.yml --check --diff
 ansible-playbook -i localhost, -c local bonus/ansible/playbook.yml
 sudo bash scripts/validate.sh

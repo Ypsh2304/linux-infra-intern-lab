@@ -253,32 +253,59 @@ Optional stretch-goal material is included under `bonus/`.
 | Docker deployment of the demo service | `bonus/docker/` |
 | Rollback/uninstall with safety checks | `bonus/rollback/` |
 
-```bash
-bash -n bonus/monitoring/check-infra-demo.sh
-bash -n bonus/docker/run-docker-demo.sh
-bash -n bonus/rollback/uninstall-infra-demo.sh
-sudo bash bonus/monitoring/check-infra-demo.sh
-sudo bash bonus/rollback/uninstall-infra-demo.sh --dry-run
-```
+The commands below are optional proof commands. They do not replace the required
+`scripts/provision.sh`, `scripts/validate.sh`, systemd, hardening, and reboot
+evidence.
 
-Ansible:
+## Bonus Verification Commands
+
+Run bonus checks only after the required provisioning, validation, and reboot
+evidence are complete.
+
+Ansible check mode:
 
 ```bash
 sudo apt-get update
 sudo apt-get install -y ansible
+ansible-playbook -i localhost, -c local bonus/ansible/playbook.yml --syntax-check
 ansible-playbook -i localhost, -c local bonus/ansible/playbook.yml --check --diff
+```
+
+Ansible apply and proof:
+
+```bash
 ansible-playbook -i localhost, -c local bonus/ansible/playbook.yml
 sudo bash scripts/validate.sh
 ```
 
-Docker, if Docker is already available:
+Monitoring and rollback dry-run:
 
 ```bash
+bash -n bonus/monitoring/check-infra-demo.sh
+sudo bash bonus/monitoring/check-infra-demo.sh
+bash -n bonus/rollback/uninstall-infra-demo.sh
+sudo bash bonus/rollback/uninstall-infra-demo.sh --dry-run
+```
+
+Docker proof, only if Docker is already installed:
+
+```bash
+docker --version
+bash -n bonus/docker/run-docker-demo.sh
 bash bonus/docker/run-docker-demo.sh
 ```
 
-The Docker build uses a root `.dockerignore` so screenshots, Git metadata, and
-unrelated docs are not sent to the build context.
+Suggested bonus evidence:
+
+```text
+evidence/bonus-ansible-check.png
+evidence/bonus-monitoring-rollback-dryrun.png
+evidence/bonus-docker-demo.png
+evidence/bonus-vm-snapshot.png
+```
+
+Skip Docker if it is not already installed. Do not run rollback with
+`--execute` on the final submission VM.
 
 ## Troubleshooting
 
@@ -294,6 +321,55 @@ systemctl list-timers infra-maintenance.timer
 
 See `docs/troubleshooting.md` for recovery notes.
 
+## Demo Recording Plan
+
+Record from the local VM console or an SSH terminal connected to the local VM.
+The demo should stay within 1-3 minutes.
+
+Local VM proof:
+
+```bash
+lsb_release -a
+hostnamectl
+```
+
+Repository proof:
+
+```bash
+find . -maxdepth 3 -type f | sort
+```
+
+Service proof:
+
+```bash
+systemctl is-active infra-demo
+systemctl is-active nginx
+curl -i http://127.0.0.1/
+curl -i http://127.0.0.1/health
+```
+
+Hardening and automation proof:
+
+```bash
+sudo ufw status verbose
+sudo ss -ltnp
+systemctl list-timers infra-maintenance.timer --no-pager
+```
+
+Reboot survival proof:
+
+```bash
+uptime
+sudo bash scripts/validate.sh
+```
+
+Optional bonus proof:
+
+```bash
+sudo bash bonus/monitoring/check-infra-demo.sh
+sudo bash bonus/rollback/uninstall-infra-demo.sh --dry-run
+```
+
 ## Demo Video
 
 ```text
@@ -302,6 +378,48 @@ See `docs/troubleshooting.md` for recovery notes.
 
 The demo should show the local VM, provisioning, systemd service health, Nginx
 landing page, validation output, and reboot survival.
+
+## Deliverables Checklist
+
+| Deliverable | Location |
+|---|---|
+| Public or shared GitHub repository | Repository URL added at submission time |
+| README with setup, assumptions, OS, commands, validation, troubleshooting, AI notes | `README.md` |
+| 1-3 minute demo video link | `README.md` under Demo Video |
+| Milestone screenshots or logs | `evidence/` |
+| Hardening checklist | `docs/hardening-checklist.md` |
+| Clear commit history | `git log --oneline` |
+
+## Safety Notes
+
+- Scripts are scoped to the local VM lab.
+- No cloud VM or cloud provider is required or referenced.
+- No script formats disks, repartitions storage, or modifies the Windows host.
+- Rollback defaults to dry-run and requires explicit `--execute` plus typed confirmation.
+- SSH access is not disabled; root login and unsafe SSH defaults are restricted.
+- Do not commit private keys, passwords, credentials, API tokens, or private screenshots.
+
+## Final Submission Checklist
+
+```bash
+git status --branch --short
+git log --oneline -8
+sudo bash scripts/provision.sh
+sudo bash scripts/validate.sh
+curl -i http://localhost/
+curl -i http://localhost/health
+```
+
+Before submission, confirm:
+
+- repository link is accessible
+- demo video link is added to this README
+- `provision.sh` and `validate.sh` pass on the local VM
+- systemd service and timer files are included
+- hardening checklist is included
+- evidence folder contains milestone screenshots/logs
+- no secrets are committed
+- all work is documented as local VM work, not cloud work
 
 ## AI Assistance Notes
 

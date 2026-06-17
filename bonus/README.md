@@ -48,6 +48,7 @@ sudo bash bonus/rollback/uninstall-infra-demo.sh --dry-run
 ```bash
 sudo apt-get update
 sudo apt-get install -y ansible
+ansible-playbook -i localhost, -c local bonus/ansible/playbook.yml --syntax-check
 ansible-playbook -i localhost, -c local bonus/ansible/playbook.yml --check --diff
 ansible-playbook -i localhost, -c local bonus/ansible/playbook.yml
 sudo bash scripts/validate.sh
@@ -56,6 +57,8 @@ sudo bash scripts/validate.sh
 ## Docker
 
 ```bash
+docker --version
+bash -n bonus/docker/run-docker-demo.sh
 bash bonus/docker/run-docker-demo.sh
 ```
 
@@ -75,3 +78,16 @@ evidence/bonus-docker-demo.png
 
 Do not run rollback with `--execute` on the final submission VM unless the lab
 is intentionally being removed after all evidence and demo work are complete.
+
+## Demo Notes
+
+For the main demo, keep the bonus proof short:
+
+```bash
+sudo bash bonus/monitoring/check-infra-demo.sh
+sudo bash bonus/rollback/uninstall-infra-demo.sh --dry-run
+```
+
+Use Ansible and Docker screenshots only if time allows. The required evidence
+still comes from provisioning, systemd service health, validation, hardening,
+and reboot survival.

@@ -6,6 +6,7 @@ does not replace the required host deployment with systemd, Nginx, and UFW.
 Run from the repository root:
 
 ```bash
+docker --version
 bash -n bonus/docker/run-docker-demo.sh
 bash bonus/docker/run-docker-demo.sh
 ```
