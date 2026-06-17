@@ -3,10 +3,6 @@
 # maintenance.sh
 # Periodic housekeeping triggered by infra-maintenance.timer.
 #
-# Tasks:
-#   1. Remove old infra-demo *.log files after 7 days.
-#   2. Write a small health snapshot under /var/lib/infra-demo.
-#
 set -euo pipefail
 
 LOG_DIR="${INFRA_DEMO_LOG_DIR:-/var/log/infra-demo}"
