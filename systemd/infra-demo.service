@@ -1,0 +1,34 @@
+[Unit]
+Description=infra-demo Python HTTP health backend
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=infra-demo
+Group=infra-demo
+EnvironmentFile=/etc/infra-demo/infra-demo.env
+ExecStart=/usr/bin/python3 /opt/infra-demo/python_server/infra_demo.py
+WorkingDirectory=/opt/infra-demo/python_server
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=10
+
+# Basic service sandboxing. The backend only needs read-only application/config files
+# and write access to its controlled log directory.
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadWritePaths=/var/log/infra-demo
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
