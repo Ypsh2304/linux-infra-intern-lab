@@ -1,0 +1,22 @@
+[Unit]
+Description=infra-demo periodic maintenance (log cleanup + health snapshot)
+After=network-online.target infra-demo.service nginx.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=infra-demo
+Group=infra-demo
+EnvironmentFile=/etc/infra-demo/infra-demo.env
+ExecStart=/usr/local/sbin/infra-maintenance.sh
+
+# The maintenance task writes only to the infra-demo state/log directories.
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/infra-demo /var/log/infra-demo
+
+StandardOutput=journal
+StandardError=journal
