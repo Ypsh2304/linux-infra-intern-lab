@@ -309,8 +309,8 @@ sudo bash scripts/validate.sh
 ## Demo Video
 
 ```text
-1. <u><a href="https://bit.ly/4eA6GAj" style="color: blue;">Repository Sturtcure Overview</a></u>
-2. <u><a href="https://bit.ly/3QK1X78" style="color: blue;">Demo on VMware</a></u>
+1. 📂 **[Repository Structure Overview](https://bit.ly/4eA6GAj)**
+2. 🖥️ **[Demo on VMware](https://bit.ly/3QK1X78)**
 ```
 
 ## Safety Notes
