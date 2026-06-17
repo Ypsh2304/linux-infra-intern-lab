@@ -40,9 +40,3 @@ and runs the service as a non-root container user.
 The build command uses `--pull` to refresh the base image when available. The
 root `.dockerignore` keeps the build context small by excluding `.git`,
 evidence screenshots, docs, logs, and unrelated bonus folders.
-
-Suggested evidence:
-
-```text
-evidence/bonus-docker-demo.png
-```
