@@ -123,6 +123,30 @@ def health_payload() -> dict[str, Any]:
     }
 
 
+def landing_page() -> str:
+    """Build the simple HTML page shown at /."""
+    uptime = round(time.monotonic() - START_TIME, 1)
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>infra-demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {{ font-family: system-ui, sans-serif; margin: 2rem; line-height: 1.5; }}
+    code {{ background: #f1f5f9; padding: 0.15rem 0.35rem; border-radius: 4px; }}
+  </style>
+</head>
+<body>
+  <h1>infra-demo is running</h1>
+  <p>This page is served by the local VM through Nginx and the systemd-managed backend.</p>
+  <p>Health endpoint: <code>/health</code></p>
+  <p>Service uptime: <code>{uptime}s</code></p>
+</body>
+</html>
+"""
+
+
 class HealthHandler(BaseHTTPRequestHandler):
     """Request handler for the infra-demo health endpoint."""
 
@@ -133,6 +157,11 @@ class HealthHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         """Serve GET /health and return 404 for everything else."""
         path = urlsplit(self.path).path
+
+        if path == "/":
+            self.send_html(HTTPStatus.OK, landing_page())
+            logger.info("GET / -> 200 from %s", self.client_ip)
+            return
 
         if path != "/health":
             self.send_json(
@@ -148,10 +177,11 @@ class HealthHandler(BaseHTTPRequestHandler):
     def do_HEAD(self) -> None:
         """Support HEAD /health for simple probes and load balancers."""
         path = urlsplit(self.path).path
-        status = HTTPStatus.OK if path == "/health" else HTTPStatus.NOT_FOUND
+        status = HTTPStatus.OK if path in {"/", "/health"} else HTTPStatus.NOT_FOUND
 
         self.send_response(status.value)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
+        content_type = "text/html; charset=utf-8" if path == "/" else "application/json; charset=utf-8"
+        self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", "0")
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
@@ -169,6 +199,17 @@ class HealthHandler(BaseHTTPRequestHandler):
 
         self.send_response(status.value)
         self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def send_html(self, status: HTTPStatus, body_text: str) -> None:
+        """Send a small HTML response."""
+        body = body_text.encode("utf-8")
+
+        self.send_response(status.value)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
