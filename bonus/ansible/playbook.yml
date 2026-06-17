@@ -8,7 +8,8 @@
   vars:
     ops_user: linus
     svc_user: infra-demo
-    repo_root: "{{ playbook_dir }}/.."
+    repo_root: "{{ playbook_dir }}/../.."
+    timezone: Asia/Kolkata
     packages:
       - curl
       - git
@@ -54,6 +55,15 @@
         cache_valid_time: 3600
         install_recommends: false
         lock_timeout: 120
+
+    - name: Read current timezone
+      ansible.builtin.command: timedatectl show -p Timezone --value
+      changed_when: false
+      register: current_timezone
+
+    - name: Set timezone
+      ansible.builtin.command: "timedatectl set-timezone {{ timezone }}"
+      when: current_timezone.stdout != timezone
 
     - name: Ensure operational sudo user exists
       ansible.builtin.user:
