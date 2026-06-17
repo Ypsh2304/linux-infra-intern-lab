@@ -1,0 +1,199 @@
+---
+- name: Optional infra-demo local provisioning equivalent
+  hosts: localhost
+  connection: local
+  become: true
+  gather_facts: true
+
+  vars:
+    ops_user: linus
+    svc_user: infra-demo
+    repo_root: "{{ playbook_dir }}/.."
+    packages:
+      - curl
+      - git
+      - tree
+      - python3
+      - ufw
+      - iproute2
+      - unattended-upgrades
+      - openssh-server
+      - nginx
+
+  handlers:
+    - name: reload systemd
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+
+    - name: restart infra-demo
+      ansible.builtin.systemd_service:
+        name: infra-demo.service
+        state: restarted
+
+    - name: reload nginx
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        state: reloaded
+
+    - name: reload ssh
+      ansible.builtin.systemd_service:
+        name: ssh.service
+        state: reloaded
+
+  tasks:
+    - name: Fail when not running on Debian/Ubuntu family
+      ansible.builtin.fail:
+        msg: "This optional playbook currently supports Debian/Ubuntu family systems only."
+      when: ansible_os_family != "Debian"
+
+    - name: Install required packages
+      ansible.builtin.apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+        install_recommends: false
+        lock_timeout: 120
+
+    - name: Ensure operational sudo user exists
+      ansible.builtin.user:
+        name: "{{ ops_user }}"
+        groups: sudo
+        append: true
+        shell: /bin/bash
+        create_home: true
+
+    - name: Ensure infra-demo service user exists
+      ansible.builtin.user:
+        name: "{{ svc_user }}"
+        system: true
+        shell: /usr/sbin/nologin
+        create_home: false
+
+    - name: Create infra-demo directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ item.owner }}"
+        group: "{{ item.group }}"
+        mode: "{{ item.mode }}"
+      loop:
+        - { path: "/opt/infra-demo", owner: "root", group: "root", mode: "0755" }
+        - { path: "/opt/infra-demo/python_server", owner: "root", group: "root", mode: "0755" }
+        - { path: "/etc/infra-demo", owner: "root", group: "infra-demo", mode: "0750" }
+        - { path: "/var/lib/infra-demo", owner: "infra-demo", group: "infra-demo", mode: "0750" }
+        - { path: "/var/log/infra-demo", owner: "infra-demo", group: "infra-demo", mode: "0750" }
+
+    - name: Copy Python health backend
+      ansible.builtin.copy:
+        src: "{{ repo_root }}/service/infra-demo/python_server/infra_demo.py"
+        dest: /opt/infra-demo/python_server/infra_demo.py
+        owner: root
+        group: root
+        mode: "0755"
+      notify: restart infra-demo
+
+    - name: Copy infra-demo environment file
+      ansible.builtin.copy:
+        src: "{{ repo_root }}/config/infra-demo.env"
+        dest: /etc/infra-demo/infra-demo.env
+        owner: root
+        group: infra-demo
+        mode: "0640"
+      notify: restart infra-demo
+
+    - name: Copy maintenance script
+      ansible.builtin.copy:
+        src: "{{ repo_root }}/scripts/maintenance.sh"
+        dest: /usr/local/sbin/infra-maintenance.sh
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Copy systemd unit files
+      ansible.builtin.copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        owner: root
+        group: root
+        mode: "0644"
+      loop:
+        - { src: "{{ repo_root }}/systemd/infra-demo.service", dest: "/etc/systemd/system/infra-demo.service" }
+        - { src: "{{ repo_root }}/systemd/infra-maintenance.service", dest: "/etc/systemd/system/infra-maintenance.service" }
+        - { src: "{{ repo_root }}/systemd/infra-maintenance.timer", dest: "/etc/systemd/system/infra-maintenance.timer" }
+      notify:
+        - reload systemd
+        - restart infra-demo
+
+    - name: Copy nginx reverse proxy site
+      ansible.builtin.copy:
+        src: "{{ repo_root }}/service/infra-demo/nginx_server/infra_demo.conf"
+        dest: /etc/nginx/sites-available/infra-demo.conf
+        owner: root
+        group: root
+        mode: "0644"
+      notify: reload nginx
+
+    - name: Enable nginx infra-demo site
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/infra-demo.conf
+        dest: /etc/nginx/sites-enabled/infra-demo.conf
+        state: link
+        force: true
+      notify: reload nginx
+
+    - name: Remove default nginx site symlink if present
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: reload nginx
+
+    - name: Validate nginx configuration
+      ansible.builtin.command: nginx -t
+      changed_when: false
+
+    - name: Copy SSH hardening drop-in
+      ansible.builtin.copy:
+        dest: /etc/ssh/sshd_config.d/99-infra-demo-hardening.conf
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          PermitRootLogin no
+          PermitEmptyPasswords no
+          X11Forwarding no
+          MaxAuthTries 3
+          LoginGraceTime 30
+      notify: reload ssh
+
+    - name: Validate SSH configuration
+      ansible.builtin.command: sshd -t
+      changed_when: false
+
+    - name: Enable and start required services and timer
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        enabled: true
+        state: started
+        daemon_reload: true
+      loop:
+        - infra-demo.service
+        - nginx.service
+        - infra-maintenance.timer
+        - apt-daily.timer
+        - apt-daily-upgrade.timer
+
+    - name: Allow OpenSSH through UFW
+      ansible.builtin.command: ufw allow OpenSSH
+      changed_when: false
+
+    - name: Allow nginx HTTP through UFW
+      ansible.builtin.command: ufw allow 'Nginx HTTP'
+      changed_when: false
+
+    - name: Enable UFW with deny incoming policy
+      ansible.builtin.shell: |
+        ufw default deny incoming
+        ufw default allow outgoing
+        ufw --force enable
+      changed_when: false
