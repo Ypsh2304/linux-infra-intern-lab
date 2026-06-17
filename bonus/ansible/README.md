@@ -28,15 +28,6 @@ What it covers:
 - UFW rules
 - apt daily update timers
 
-Suggested evidence:
-
-```text
-evidence/bonus-ansible-check.png
-```
-
-The `--check --diff` run shows planned changes. The apply run changes the local
-VM. `scripts/validate.sh` remains the final proof.
-
 Implementation notes:
 
 - Uses `ansible.builtin.*` module names for clarity.
